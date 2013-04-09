@@ -33,19 +33,12 @@ class Notification(object):
             if self.configuration.api_key == None:
                 bugsnag.log("No API key configured, couldn't notify")
                 return
-            
-            if self.configuration.notify_release_stages != None and not self.configuration.release_stage in self.configuration.notify_release_stages:
-                return
-        
-            if self.configuration.ignore_classes != None and fully_qualified_class_name(self.exception) in self.configuration.ignore_classes:
+
+            if not self.configuration.should_notify or self.configuration.should_ignore(self.exception):
                 return
 
             # Generate the URL
-            if self.configuration.use_ssl:
-                url = "https://%s" % self.configuration.endpoint
-            else:
-                url = "http://%s" % self.configuration.endpoint
-
+            url = self.configuration.get_endpoint()
             bugsnag.log("Notifying %s of exception" % url)
 
             # Generate the payload
